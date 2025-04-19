@@ -1,29 +1,27 @@
-import { InsertOne, List, QueryByName } from "../../wailsjs/go/internal/Template";
+import { withMessage } from ".";
+import { Create, ListByName, Update,Delete } from "../../wailsjs/go/internal/Template";
 
 export const templateAPI = {
-  add,
+  listByName,
+  create,
   update,
-  getList,
-  getByName,
+  deleteById,
 };
 
-async function add(template) {
-  console.log(template);
-  const res = await InsertOne(template);
-  console.log(res);
-  return [];
+async function listByName(name = "", currentPage = 1, PageSize = 5) {
+  const offset = (currentPage - 1) * PageSize;
+  return await withMessage(ListByName, name, offset, PageSize);
 }
 
-async function getByName(name) {
-  return [];
+async function create(template) {
+  return await withMessage(Create, template);
 }
+
 
 async function update(template) {
-  return [];
+  return await withMessage(Update, template);
 }
 
-async function getList(searchText = "", currentPage = 1, pageSize = 10) {
-  const res = await List(searchText, currentPage, pageSize);
-  console.log(res);
-  return res;
+async function deleteById(id="") {
+  return await withMessage(Delete, id);
 }

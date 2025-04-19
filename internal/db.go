@@ -1,20 +1,62 @@
 package internal
 
 import (
+	"context"
+	"time"
+
+	"github.com/chenmingyong0423/go-mongox/v2"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
 
-const DBURL = "mongodb://jldg:123456@10.50.21.152:27017/printease?authSource=admin&tls=false"
+const DBURL = "mongodb+srv://dote27:dduutton123@cluster0.uotcs1c.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
-var MongoDB *mongo.Client
+var DBClient = InitDB()
 
-func InitDB() *mongo.Client {
+type Model struct {
+	ID        bson.ObjectID `bson:"_id,omitempty" mongox:"autoID" json:"id"`
+	CreatedAt time.Time     `bson:"created_at" json:"createdAt"`
+	UpdatedAt time.Time     `bson:"updated_at" json:"updatedAt"`
+}
+
+//wails:ignore
+func (m *Model) defaultId() bson.ObjectID {
+	if m.ID.IsZero() {
+		m.ID = bson.NewObjectID()
+	}
+	return m.ID
+}
+
+//wails:ignore
+func (m *Model) defaultCreatedAt() time.Time {
+	if m.CreatedAt.IsZero() {
+		m.CreatedAt = time.Now().Local()
+	}
+	return m.CreatedAt
+}
+
+//wails:ignore
+func (m *Model) defaultUpdatedAt() time.Time {
+	m.UpdatedAt = time.Now().Local()
+	return m.UpdatedAt
+}
+
+func InitDB() *mongox.Client {
 	options := options.Client().ApplyURI(DBURL)
 	client, err := mongo.Connect(options)
 	if err != nil {
 		panic(err)
 	}
-	MongoDB = client
-	return client
+
+	err = client.Ping(context.Background(), readpref.Primary())
+	if err != nil {
+		panic(err)
+	}
+	return mongox.NewClient(client, &mongox.Config{})
+}
+
+func Close() error {
+	return DBClient.Disconnect(context.Background())
 }

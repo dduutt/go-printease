@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+
+	"github.com/wailsapp/wails/v2/runtime"
 )
 
 // App struct
@@ -18,4 +20,16 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+}
+
+func (a *App) FileSelector(title, displayName, ext string) (string, error) {
+	return runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: title,
+		Filters: []runtime.FileFilter{
+			{
+				DisplayName: displayName,
+				Pattern:     ext,
+			},
+		},
+	})
 }

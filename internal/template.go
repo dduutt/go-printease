@@ -2,77 +2,63 @@ package internal
 
 import (
 	"context"
-	"fmt"
-	"time"
 
-	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"github.com/chenmingyong0423/go-mongox/v2"
+	"github.com/chenmingyong0423/go-mongox/v2/bsonx"
+	"github.com/chenmingyong0423/go-mongox/v2/builder/query"
+	"github.com/chenmingyong0423/go-mongox/v2/builder/update"
 )
 
+var tpColl = mongox.NewCollection[Template](DBClient.NewDatabase("printease"), "templates")
+
 type Template struct {
-	ID          string `bson:"id" json:"id"`
+	Model       `bson:"inline"`
 	Name        string `bson:"name" json:"name"`
 	Path        string `bson:"path" json:"path"`
 	Description string `bson:"description" json:"description"`
-	InUse       int    `bson:"inUse" json:"inUse"`
-	CreatedAt   string `bson:"createdAt" json:"createdAt"`
-	UpdatedAt   string `bson:"updatedAt" json:"updatedAt"`
-}
-type TemplateData struct {
-	TemplateId string   `bson:"templateId" json:"templateId"`
-	Fields     []string `bson:"fields" json:"fields"`
-	Data       []any    `bson:"data" json:"data"`
+	InUse       int    `bson:"in_use" json:"inUse"`
 }
 
-func (t *Template) InsertOne(it Template) (Template, error) {
-	c := MongoDB.Database("printease").Collection("templates")
-	f := bson.D{{Key: "name", Value: it.Name}}
-	rt := Template{}
-	err := c.FindOne(context.TODO(), f).Decode(rt)
-	if err == nil {
-		return rt, fmt.Errorf("%s already exists", it.Name)
-	}
-	if err == mongo.ErrNoDocuments {
-		it.CreatedAt = time.Now().Format("2006-01-02 15:04:05")
-		it.UpdatedAt = time.Now().Format("2006-01-02 15:04:05")
-		ir, e := c.InsertOne(context.TODO(), it)
-		if e != nil {
-			return rt, fmt.Errorf("插入失败: %v", e)
-		}
-		it.ID = ir.InsertedID.(string)
-		return it, nil
-	}
-	return it, fmt.Errorf("查询失败: %v", err)
+type ListByNameResp struct {
+	Total int64       `json:"total"`
+	List  []*Template `json:"list"`
 }
 
-func (t *Template) QueryByName(name string) ([]*Template, error) {
+func (t *Template) Create(ti *Template) error {
+	ti.CreatedAt = t.defaultCreatedAt()
+	_, err := tpColl.Creator().InsertOne(context.Background(), ti)
+	return err
+}
 
-	c := MongoDB.Database("printease").Collection("templates")
-	f := bson.D{{Key: "name", Value: bson.D{{Key: "$regex", Value: name}, {Key: "$options", Value: "i"}}}}
-	cur, err := c.Find(context.TODO(), f)
+// 根据名称模糊查询
+func (t *Template) ListByName(name string, skip, limit int) (*ListByNameResp, error) {
+	total, err := t.Count(name)
 	if err != nil {
-		return nil, fmt.Errorf("查询失败: %v", err)
+		return nil, err
 	}
-	defer cur.Close(context.TODO())
-	var results []*Template
-	err = cur.All(context.TODO(), results)
-	return results, err
+	tps, err := tpColl.Finder().Filter(query.Regex("name", name)).Sort(bsonx.M("created_at", -1)).Skip(int64(skip)).Limit(int64(limit)).Find(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	return &ListByNameResp{Total: total, List: tps}, nil
 }
 
-func (t *Template) List(q string, offset, limit int64) ([]Template, error) {
+func (t *Template) Update(ut Template) error {
+	ut.UpdatedAt = t.defaultUpdatedAt()
+	_, err := tpColl.Updater().Filter(query.Id(ut.ID)).
+		Updates(update.SetFields(ut)).UpdateOne(context.Background())
+	return err
+}
 
-	c := MongoDB.Database("printease").Collection("templates")
-	f := bson.D{
-		{Key: "name", Value: bson.D{{Key: "$regex", Value: q}, {Key: "$options", Value: "i"}}},
-	}
-	opts := options.Find().SetLimit(limit).SetSkip(offset)
-	cur, err := c.Find(context.TODO(), f, opts)
-	if err != nil {
-		return nil, fmt.Errorf("查询失败: %v", err)
-	}
-	defer cur.Close(context.TODO())
-	var results []Template
-	err = cur.All(context.TODO(), &results)
-	return results, err
+func (t *Template) Delete(id string) error {
+	_, err := tpColl.Deleter().Filter(query.Id(id)).DeleteOne(context.Background())
+	return err
+}
+
+func (t *Template) FindByName(name string) (*Template, error) {
+	return tpColl.Finder().Filter(query.Eq("name", name)).FindOne(context.Background())
+}
+
+func (t *Template) Count(name string) (int64, error) {
+	return tpColl.Finder().Filter(query.Regex("name", name)).Count(context.Background())
 }

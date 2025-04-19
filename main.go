@@ -1,11 +1,10 @@
 package main
 
 import (
-	"context"
 	"embed"
-	"fmt"
+	"log"
 
-	. "go-printease/internal"
+	"go-printease/internal"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -16,17 +15,16 @@ import (
 var assets embed.FS
 
 func main() {
-
 	// Create an instance of the app structure
 	app := NewApp()
-	db := InitDB()
+	template := &internal.Template{}
+
 	defer func() {
-		err := db.Disconnect(context.TODO())
+		err := internal.Close()
 		if err != nil {
-			fmt.Println(err)
+			log.Println("Error closing DB:", err)
 		}
 	}()
-	template := &Template{}
 
 	// Create application with options
 	err := wails.Run(&options.App{

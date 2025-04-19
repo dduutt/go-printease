@@ -3,6 +3,7 @@ module go-printease
 go 1.23
 
 require (
+	github.com/chenmingyong0423/go-mongox/v2 v2.5.1
 	github.com/wailsapp/wails/v2 v2.10.1
 	go.mongodb.org/mongo-driver/v2 v2.2.0
 )

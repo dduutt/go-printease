@@ -1,28 +1,20 @@
-export async function withMessage(wm = {}) {
-  const {
-    successMessage = "操作成功",
-    errorMessage = "操作失败",
-    successType = "success",
-    errorType = "error",
-    f = async () => {},
-  } = wm;
+export * from "./template";
 
+export async function withMessage(f = async () => {}, ...args) {
   try {
-    const result = await f();
-    ElMessage({
-      message: successMessage,
-      type: successType,
+    const result = await f(...args);
+    console.log(result);
+    ElMessage.success({
+      message: "操作成功",
     });
     return {
       data: result,
       status: true,
     };
   } catch (error) {
-    ElMessage({
-      message: errorMessage,
-      type: errorType,
+    ElMessage.error({
+      message: "操作失败",
     });
-    console.error(`${f.name} error:`, error);
     return {
       data: "",
       status: false,

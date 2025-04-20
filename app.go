@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	"github.com/wailsapp/wails/v2/runtime"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // App struct

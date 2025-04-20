@@ -111,7 +111,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
-import { templateAPI } from "../api/template";
+import { fileAPI, templateAPI } from "../api/";
 
 const defaultFormData = {
   id: null,
@@ -182,9 +182,12 @@ async function submitForm() {
 }
 
 // 删除操作
-function handleDelete(row) {
+async function handleDelete(row) {
   // 这里添加实际删除逻辑
-  templateAPI.deleteById(row.id);
+  const r = await templateAPI.deleteById(row.id);
+  if (r.status) {
+    getTemplateList();
+  }
 }
 
 function handleSearch() {
@@ -194,7 +197,10 @@ function handleSearch() {
 
 // 打开文件选择器
 async function openFileSelector() {
-  formData.path = "测试路径文件";
+  const r = await fileAPI.selector("请选择模板文件", "Xlsx", "*.xlsx");
+  if (r.status) {
+    formData.path = r.data
+  }
 }
 
 // 获取模板列表

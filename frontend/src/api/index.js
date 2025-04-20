@@ -1,9 +1,10 @@
 export * from "./template";
+export * from "./file";
+export * from "./printer";
 
 export async function withMessage(f = async () => {}, ...args) {
   try {
     const result = await f(...args);
-    console.log(result);
     ElMessage.success({
       message: "操作成功",
     });

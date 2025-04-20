@@ -21,24 +21,24 @@ type Model struct {
 	UpdatedAt time.Time     `bson:"updated_at" json:"updatedAt"`
 }
 
-//wails:ignore
-func (m *Model) defaultId() bson.ObjectID {
+// wails:ignore
+func (m *Model) DefaultId() bson.ObjectID {
 	if m.ID.IsZero() {
 		m.ID = bson.NewObjectID()
 	}
 	return m.ID
 }
 
-//wails:ignore
-func (m *Model) defaultCreatedAt() time.Time {
+// wails:ignore
+func (m *Model) DefaultCreatedAt() time.Time {
 	if m.CreatedAt.IsZero() {
 		m.CreatedAt = time.Now().Local()
 	}
 	return m.CreatedAt
 }
 
-//wails:ignore
-func (m *Model) defaultUpdatedAt() time.Time {
+// wails:ignore
+func (m *Model) DefaultUpdatedAt() time.Time {
 	m.UpdatedAt = time.Now().Local()
 	return m.UpdatedAt
 }
@@ -50,7 +50,7 @@ func InitDB() *mongox.Client {
 		panic(err)
 	}
 
-	err = client.Ping(context.Background(), readpref.Primary())
+	err = client.Ping(context.TODO(), readpref.Primary())
 	if err != nil {
 		panic(err)
 	}

@@ -2,11 +2,13 @@ package internal
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/chenmingyong0423/go-mongox/v2"
 	"github.com/chenmingyong0423/go-mongox/v2/bsonx"
 	"github.com/chenmingyong0423/go-mongox/v2/builder/query"
 	"github.com/chenmingyong0423/go-mongox/v2/builder/update"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 var tpColl = mongox.NewCollection[Template](DBClient.NewDatabase("printease"), "templates")
@@ -25,9 +27,26 @@ type ListByNameResp struct {
 }
 
 func (t *Template) Create(ti *Template) error {
-	ti.CreatedAt = t.defaultCreatedAt()
-	_, err := tpColl.Creator().InsertOne(context.Background(), ti)
-	return err
+	ti.CreatedAt = t.DefaultCreatedAt()
+	r, err := tpColl.Creator().InsertOne(context.Background(), ti)
+	if err != nil {
+		return err
+	}
+	objID, ok := r.InsertedID.(bson.ObjectID)
+	if !ok {
+		return fmt.Errorf("insert template error: %v", err)
+	}
+	if objID.IsZero() {
+		return fmt.Errorf("insert template error: %v", err)
+	}
+	_, errs := LoadTemplateDatas(objID.Hex(), ti.Path)
+	if len(errs) > 0 {
+		for _, err := range errs {
+			fmt.Println("insert template data error:", err)
+		}
+		return fmt.Errorf("insert template data error: %v", errs)
+	}
+	return nil
 }
 
 // 根据名称模糊查询
@@ -44,14 +63,19 @@ func (t *Template) ListByName(name string, skip, limit int) (*ListByNameResp, er
 }
 
 func (t *Template) Update(ut Template) error {
-	ut.UpdatedAt = t.defaultUpdatedAt()
+	ut.UpdatedAt = t.DefaultUpdatedAt()
 	_, err := tpColl.Updater().Filter(query.Id(ut.ID)).
 		Updates(update.SetFields(ut)).UpdateOne(context.Background())
 	return err
 }
 
 func (t *Template) Delete(id string) error {
-	_, err := tpColl.Deleter().Filter(query.Id(id)).DeleteOne(context.Background())
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	r, err := tpColl.Deleter().Filter(query.Id(objID)).DeleteOne(context.Background())
+	fmt.Println("delete result:", r.DeletedCount)
 	return err
 }
 

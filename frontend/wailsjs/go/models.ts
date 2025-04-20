@@ -2,10 +2,8 @@ export namespace internal {
 	
 	export class Template {
 	    id: number[];
-	    // Go type: time
-	    createdAt: any;
-	    // Go type: time
-	    updatedAt: any;
+	    createdAt: time.Time;
+	    updatedAt: time.Time;
 	    name: string;
 	    path: string;
 	    description: string;
@@ -18,8 +16,8 @@ export namespace internal {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.id = source["id"];
-	        this.createdAt = this.convertValues(source["createdAt"], null);
-	        this.updatedAt = this.convertValues(source["updatedAt"], null);
+	        this.createdAt = this.convertValues(source["createdAt"], time.Time);
+	        this.updatedAt = this.convertValues(source["updatedAt"], time.Time);
 	        this.name = source["name"];
 	        this.path = source["path"];
 	        this.description = source["description"];
@@ -75,6 +73,23 @@ export namespace internal {
 		    }
 		    return a;
 		}
+	}
+
+}
+
+export namespace time {
+	
+	export class Time {
+	
+	
+	    static createFrom(source: any = {}) {
+	        return new Time(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	
+	    }
 	}
 
 }

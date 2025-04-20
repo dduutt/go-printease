@@ -10,6 +10,18 @@ export function Create(arg1) {
   return window['go']['internal']['Template']['Create'](arg1);
 }
 
+export function DefaultCreatedAt() {
+  return window['go']['internal']['Template']['DefaultCreatedAt']();
+}
+
+export function DefaultId() {
+  return window['go']['internal']['Template']['DefaultId']();
+}
+
+export function DefaultUpdatedAt() {
+  return window['go']['internal']['Template']['DefaultUpdatedAt']();
+}
+
 export function Delete(arg1) {
   return window['go']['internal']['Template']['Delete'](arg1);
 }

@@ -23,5 +23,6 @@ async function update(template) {
 }
 
 async function deleteById(id="") {
+  console.log("deleteById", id);
   return await withMessage(Delete, id);
 }

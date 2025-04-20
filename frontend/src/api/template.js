@@ -8,7 +8,7 @@ export const templateAPI = {
   deleteById,
 };
 
-async function listByName(name = "", currentPage = 1, PageSize = 5) {
+async function listByName(name = "", currentPage = 1, PageSize = 0) {
   const offset = (currentPage - 1) * PageSize;
   return await withMessage(ListByName, name, offset, PageSize);
 }

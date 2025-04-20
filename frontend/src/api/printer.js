@@ -1,18 +1,20 @@
+import { GetPinters } from "../../wailsjs/go/main/App";
+
 export const printer = {
   list,
 };
 
 async function list() {
-  return [
-    {
-      id: 1,
-      name: "HP",
-      status: "online",
-    },
-    {
-      id: 2,
-      name: "Epson",
-      status: "offline",
-    },
-  ];
+  try {
+    const r = await GetPinters();
+    return {
+      data: r,
+      status: true,
+    };
+  } catch (e) {
+    return {
+      data: [],
+      status: false,
+    };
+  }
 }

@@ -5,3 +5,7 @@
 export function FileSelector(arg1, arg2, arg3) {
   return window['go']['main']['App']['FileSelector'](arg1, arg2, arg3);
 }
+
+export function GetPinters() {
+  return window['go']['main']['App']['GetPinters']();
+}

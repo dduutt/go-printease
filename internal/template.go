@@ -3,11 +3,13 @@ package internal
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/chenmingyong0423/go-mongox/v2"
 	"github.com/chenmingyong0423/go-mongox/v2/bsonx"
 	"github.com/chenmingyong0423/go-mongox/v2/builder/query"
 	"github.com/chenmingyong0423/go-mongox/v2/builder/update"
+	"github.com/xuri/excelize/v2"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -15,10 +17,12 @@ var tpColl = mongox.NewCollection[Template](DBClient.NewDatabase("printease"), "
 
 type Template struct {
 	Model       `bson:"inline"`
-	Name        string `bson:"name" json:"name"`
-	Path        string `bson:"path" json:"path"`
-	Description string `bson:"description" json:"description"`
-	InUse       int    `bson:"in_use" json:"inUse"`
+	Name        string              `bson:"name" json:"name"`
+	Path        string              `bson:"path" json:"path"`
+	Description string              `bson:"description" json:"description"`
+	InUse       int                 `bson:"in_use" json:"inUse"`
+	Filds       []map[string]string `bson:"fields" json:"fields"`
+	Datas       []map[string]string `bson:"datas" json:"datas"`
 }
 
 type ListByNameResp struct {
@@ -28,25 +32,12 @@ type ListByNameResp struct {
 
 func (t *Template) Create(ti *Template) error {
 	ti.CreatedAt = t.DefaultCreatedAt()
-	r, err := tpColl.Creator().InsertOne(context.Background(), ti)
+	err := ti.readFromXlsx()
 	if err != nil {
-		return err
+		return fmt.Errorf("read from xlsx error:%s", err)
 	}
-	objID, ok := r.InsertedID.(bson.ObjectID)
-	if !ok {
-		return fmt.Errorf("insert template error: %v", err)
-	}
-	if objID.IsZero() {
-		return fmt.Errorf("insert template error: %v", err)
-	}
-	_, errs := LoadTemplateDatas(objID.Hex(), ti.Path)
-	if len(errs) > 0 {
-		for _, err := range errs {
-			fmt.Println("insert template data error:", err)
-		}
-		return fmt.Errorf("insert template data error: %v", errs)
-	}
-	return nil
+	_, err = tpColl.Creator().InsertOne(context.Background(), ti)
+	return err
 }
 
 // 根据名称模糊查询
@@ -74,9 +65,12 @@ func (t *Template) Delete(id string) error {
 	if err != nil {
 		return err
 	}
+
 	r, err := tpColl.Deleter().Filter(query.Id(objID)).DeleteOne(context.Background())
-	fmt.Println("delete result:", r.DeletedCount)
-	return err
+	if r.DeletedCount == 0 {
+		return fmt.Errorf("delete template error: %v", err)
+	}
+	return nil
 }
 
 func (t *Template) FindByName(name string) (*Template, error) {
@@ -85,4 +79,64 @@ func (t *Template) FindByName(name string) (*Template, error) {
 
 func (t *Template) Count(name string) (int64, error) {
 	return tpColl.Finder().Filter(query.Regex("name", name)).Count(context.Background())
+}
+
+func (t *Template) readFromXlsx() error {
+	f, err := excelize.OpenFile(t.Path)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err := f.Close(); err != nil {
+			log.Println("close file error:", err)
+		}
+	}()
+
+	sheetName := f.GetSheetList()[0]
+	if sheetName == "" {
+		return fmt.Errorf("sheet name is empty")
+	}
+	rows, err := f.Rows(sheetName)
+	if err != nil {
+		return fmt.Errorf("failed to read rows: %v", err)
+	}
+
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Println("close rows error:", err)
+		}
+	}()
+	var headers []string
+	if rows.Next() {
+		row, err := rows.Columns()
+		if err != nil {
+			return fmt.Errorf("failed to read header row: %v", err)
+		}
+		headers = row
+		for _, value := range row {
+			m := make(map[string]string)
+			m["name"] = value
+			m["key"] = value
+			m["value"] = ""
+			t.Filds = append(t.Filds, m)
+		}
+	}
+	rowIdx := 1
+	for rows.Next() {
+		rowIdx++
+		row, err := rows.Columns()
+		if err != nil {
+			return fmt.Errorf("failed to read row %d: %v", rowIdx, err)
+		}
+		m := make(map[string]string)
+
+		for i, value := range row {
+			if i < len(headers) {
+				m[headers[i]] = value
+			}
+		}
+		t.Datas = append(t.Datas, m)
+	}
+	return nil
 }

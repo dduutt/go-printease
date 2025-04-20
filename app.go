@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"os/exec"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -32,4 +34,27 @@ func (a *App) FileSelector(title, displayName, ext string) (string, error) {
 			},
 		},
 	})
+}
+
+func (a *App) GetPinters() ([]string, error) {
+	// 执行powershell命令读取打印机名称列表，以json格式返回
+	cmd := exec.Command("powershell", "-Command", "Get-Printer | Select-Object -Property Name | ConvertTo-Json")
+	out, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+	type p struct {
+		Name string `json:"Name"`
+	}
+	var printerNames []p
+
+	if err := json.Unmarshal(out, &printerNames); err != nil {
+		return nil, err
+	}
+	printers := make([]string, 0, len(printerNames))
+	for _, p := range printerNames {
+		printers = append(printers, p.Name)
+	}
+	return printers, nil
+
 }

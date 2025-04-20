@@ -8,6 +8,8 @@ export namespace internal {
 	    path: string;
 	    description: string;
 	    inUse: number;
+	    fields: any[];
+	    datas: any[];
 	
 	    static createFrom(source: any = {}) {
 	        return new Template(source);
@@ -22,6 +24,8 @@ export namespace internal {
 	        this.path = source["path"];
 	        this.description = source["description"];
 	        this.inUse = source["inUse"];
+	        this.fields = source["fields"];
+	        this.datas = source["datas"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

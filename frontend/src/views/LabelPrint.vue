@@ -1,34 +1,73 @@
 <template>
   <div class="common-layout">
-    <el-form :inline="true" :model="formData" label-position="top" class="printForm">
+    <el-form
+      :inline="true"
+      :model="formData"
+      label-position="top"
+      class="printForm"
+    >
       <el-row>
         <el-col :span="8">
-          <el-form-item label="打印模板" prop="labelTemplate">
-            <el-select v-model="formData.labelTemplate" filterable placeholder="请选择打印模板">
-              <el-option v-for="item in labelTemplates" :key="item.id" :label="item.name" :value="item.data" />
+          <el-form-item label="打印模板" prop="printTemplate">
+            <el-select
+              v-model="formData.printTemplate"
+              value-key="id"
+              placeholder="请选择打印模板"
+            >
+              <el-option
+                v-for="item in printTemplates"
+                :key="item.id"
+                :label="item.name"
+                :value="item"
+              />
             </el-select>
           </el-form-item>
         </el-col>
         <el-col :span="8">
           <el-form-item label="标签模板" prop="labelTemplate">
-            <el-select v-model="formData.labelTemplates" remote :remote-method="searchRemoteLabelData" filterable
-              placeholder="Select">
-              <el-option v-for="item in labelTemplateDatas" :key="item.id" :label="item.name" :value="item.data" />
+            <el-select
+              v-model="formData.labelTemplates"
+              remote
+              :remote-method="searchRemoteLabelData"
+              filterable
+              placeholder="Select"
+            >
+              <el-option
+                v-for="item in labelTemplateDatas"
+                :key="item.id"
+                :label="item.name"
+                :value="item.data"
+              />
             </el-select>
           </el-form-item>
         </el-col>
         <el-col :span="8">
           <el-form-item label="索引" prop="labelData">
-            <el-select v-model="formData.labelData" remote :remote-method="searchRemoteLabelData" filterable
-              placeholder="Select">
-              <el-option v-for="item in labelTemplateDatas" :key="item.id" :label="item.name" :value="item.data" />
+            <el-select
+              v-model="formData.labelData"
+              remote
+              :remote-method="searchRemoteLabelData"
+              filterable
+              placeholder="Select"
+            >
+              <el-option
+                v-for="item in labelTemplateDatas"
+                :key="item.id"
+                :label="item.name"
+                :value="item.data"
+              />
             </el-select>
           </el-form-item>
         </el-col>
         <el-col :span="8">
           <el-form-item label="打印机" prop="printer">
             <el-select v-model="formData.printer" placeholder="请选择打印机">
-              <el-option v-for="item in printers" :key="item" :label="item" :value="item" />
+              <el-option
+                v-for="item in printers"
+                :key="item"
+                :label="item"
+                :value="item"
+              />
             </el-select>
           </el-form-item>
         </el-col>
@@ -39,13 +78,21 @@
         </el-col>
         <el-col :span="6">
           <el-form-item label="位数" prop="runningNumberLength">
-            <el-input-number v-model="formData.runningNumberLength" :min="1" :max="6" />
+            <el-input-number
+              v-model="formData.runningNumberLength"
+              :min="1"
+              :max="6"
+            />
           </el-form-item>
         </el-col>
         <el-col :span="6">
           <el-form-item label="流水号" prop="runningNumber">
-            <el-input-number v-model="formData.runningNumber" @input="handleRunningNumberInput" :min="1"
-              :max="Math.pow(10, formData.runningNumberLength) - 1" />
+            <el-input-number
+              v-model="formData.runningNumber"
+              @input="handleRunningNumberInput"
+              :min="1"
+              :max="Math.pow(10, formData.runningNumberLength) - 1"
+            />
           </el-form-item>
         </el-col>
         <el-col :span="6">
@@ -73,7 +120,7 @@
             <el-button type="primary" @click="print">打印</el-button>
           </el-form-item>
         </el-col>
-        <el-col :span="8" v-for="item in formData.labelData">
+        <el-col :span="8" v-for="item in formData?.printTemplate?.fields">
           <el-form-item :label="item.name" :prop="item.key">
             <el-input v-model="item.value" />
           </el-form-item>
@@ -86,6 +133,7 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from "vue";
 import { printer } from "../api/printer";
+import { templateAPI } from "../api";
 
 const defaultFormData = {
   labelTemplate: "",
@@ -127,6 +175,8 @@ const labelTemplateDatas = ref([]);
 const printers = ref([]);
 const runningNumberCounter = ref(1);
 const runningNumberLength = ref(1);
+// 打印模板列表
+const printTemplates = reactive([]);
 
 const batchCode = computed({
   get() {
@@ -151,12 +201,27 @@ async function resetLabelData() {
   Object.assign(formData, defaultFormData);
 }
 
+async function getTemplates() {
+  const r = await templateAPI.listByName();
+  console.log(r);
+  if (r.status) {
+    Object.assign(printTemplates, r.data.list);
+  }
+}
+
+async function getPrinters() {
+  const r = await printer.list();
+  if (r.status) {
+    printers.value = r.data;
+  }
+}
 function handleRunningNumberInput(value) {
   console.log(value);
 }
 
 onMounted(async () => {
-  printers.value = await printer.list();
+  getPrinters();
+  getTemplates();
 });
 </script>
 

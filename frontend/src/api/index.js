@@ -3,6 +3,11 @@ export * from "./file";
 export * from "./printer";
 
 export async function withMessage(f = async () => {}, ...args) {
+  const loading = ElLoading.service({
+    lock: true,
+    text: "数据加载中...",
+    background: "rgba(0, 0, 0, 0.7)",
+  });
   try {
     const result = await f(...args);
     ElMessage.success({
@@ -20,5 +25,7 @@ export async function withMessage(f = async () => {}, ...args) {
       data: "",
       status: false,
     };
+  } finally {
+    loading.close();
   }
 }

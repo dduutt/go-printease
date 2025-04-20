@@ -88,7 +88,12 @@
           <el-input v-model="formData.name" placeholder="请输入模板名称" />
         </el-form-item>
         <el-form-item label="模板路径" prop="path">
-          <el-button text type="primary" @click="openFileSelector">
+          <el-button
+            text
+            type="primary"
+            @click="openFileSelector"
+            :disabled="dialogType === 'edit'"
+          >
             {{ formData.path || "选择模板文件" }}
           </el-button>
         </el-form-item>
@@ -199,7 +204,7 @@ function handleSearch() {
 async function openFileSelector() {
   const r = await fileAPI.selector("请选择模板文件", "Xlsx", "*.xlsx");
   if (r.status) {
-    formData.path = r.data
+    formData.path = r.data;
   }
 }
 

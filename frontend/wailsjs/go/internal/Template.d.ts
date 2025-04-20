@@ -20,4 +20,6 @@ export function FindByName(arg1:string):Promise<internal.Template>;
 
 export function ListByName(arg1:string,arg2:number,arg3:number):Promise<internal.ListByNameResp>;
 
+export function SearchDatas(arg1:string,arg2:string,arg3:string):Promise<Array<internal.Template>>;
+
 export function Update(arg1:internal.Template):Promise<void>;

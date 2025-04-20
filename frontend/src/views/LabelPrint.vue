@@ -122,7 +122,26 @@
         </el-col>
         <el-col :span="8" v-for="item in formData?.printTemplate?.fields">
           <el-form-item :label="item.name" :prop="item.key">
-            <el-input v-model="item.value" />
+            <el-select
+              v-model="item.value"
+              filterable
+              remote
+              allow-create
+              default-first-option
+              value-key="key"
+              :filter-method="
+                (query) => {
+                  searchRemoteLabelData(item.key, query);
+                }
+              "
+            >
+              <el-option
+                v-for="option in options[item.key]"
+                :key="option?.key"
+                :label="option?.label"
+                :value="option?.value"
+              />
+            </el-select>
           </el-form-item>
         </el-col>
       </el-row>
@@ -178,6 +197,8 @@ const runningNumberLength = ref(1);
 // 打印模板列表
 const printTemplates = reactive([]);
 
+const options = reactive({});
+
 const batchCode = computed({
   get() {
     return (
@@ -193,8 +214,27 @@ async function print() {
   console.log(formData);
 }
 
-async function searchRemoteLabelData(query) {
-  console.log("searchRemoteLabelData");
+async function searchRemoteLabelData(key, query) {
+  if (!query) {
+    return;
+  }
+  if (!options[key]) {
+    options[key] = [];
+  }
+  const datas = [...formData.printTemplate.datas];
+  const filteredDatas = datas.filter((item) => {
+    return item[key]?.includes(query);
+  });
+  if (!filteredDatas.length) {
+    return;
+  }
+
+  filteredDatas.forEach((item, idx) => {
+    item.key = `${key}&&${idx}`;
+    item.label = item[key];
+    item.value = item[key];
+  });
+  Object.assign(options[key], [...filteredDatas]);
 }
 
 async function resetLabelData() {

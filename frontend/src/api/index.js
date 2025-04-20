@@ -18,6 +18,7 @@ export async function withMessage(f = async () => {}, ...args) {
       status: true,
     };
   } catch (error) {
+    console.error("withMessage error", error);
     ElMessage.error({
       message: "操作失败",
     });

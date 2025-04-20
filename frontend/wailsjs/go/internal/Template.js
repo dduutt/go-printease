@@ -34,6 +34,10 @@ export function ListByName(arg1, arg2, arg3) {
   return window['go']['internal']['Template']['ListByName'](arg1, arg2, arg3);
 }
 
+export function SearchDatas(arg1, arg2, arg3) {
+  return window['go']['internal']['Template']['SearchDatas'](arg1, arg2, arg3);
+}
+
 export function Update(arg1) {
   return window['go']['internal']['Template']['Update'](arg1);
 }

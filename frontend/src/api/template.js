@@ -1,11 +1,18 @@
 import { withMessage } from ".";
-import { Create, ListByName, Update,Delete } from "../../wailsjs/go/internal/Template";
+import {
+  Create,
+  ListByName,
+  Update,
+  Delete,
+  SearchDatas,
+} from "../../wailsjs/go/internal/Template";
 
 export const templateAPI = {
   listByName,
   create,
   update,
   deleteById,
+  searchDatas,
 };
 
 async function listByName(name = "", currentPage = 1, PageSize = 0) {
@@ -17,12 +24,16 @@ async function create(template) {
   return await withMessage(Create, template);
 }
 
-
 async function update(template) {
   return await withMessage(Update, template);
 }
 
-async function deleteById(id="") {
+async function deleteById(id = "") {
   console.log("deleteById", id);
   return await withMessage(Delete, id);
+}
+
+async function searchDatas(query) {
+  const { id, key, q } = query;
+  return await withMessage(SearchDatas, id, key, q);
 }

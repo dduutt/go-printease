@@ -20,7 +20,7 @@ type Template struct {
 	Name        string              `bson:"name" json:"name"`
 	Path        string              `bson:"path" json:"path"`
 	Description string              `bson:"description" json:"description"`
-	InUse       int                 `bson:"in_use" json:"inUse"`
+	Disabled    int                 `bson:"disabled" json:"disabled"`
 	Filds       []map[string]string `bson:"fields" json:"fields"`
 	Datas       []map[string]string `bson:"datas" json:"datas"`
 }
@@ -51,6 +51,19 @@ func (t *Template) ListByName(name string, skip, limit int) (*ListByNameResp, er
 		return nil, err
 	}
 	return &ListByNameResp{Total: total, List: tps}, nil
+}
+
+func (t *Template) ListUsedByName(name string) (*ListByNameResp, error) {
+	total, err := t.Count(name)
+	if err != nil {
+		return nil, err
+	}
+	tps, err := tpColl.Finder().Filter(query.Regex("name", name)).Sort(bsonx.M("created_at", -1)).Find(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	return &ListByNameResp{Total: total, List: tps}, nil
+
 }
 
 func (t *Template) Update(ut Template) error {
@@ -88,7 +101,7 @@ func (t *Template) readFromXlsx() error {
 	}
 
 	defer func() {
-		if err := f.Close(); err != nil {
+		if err = f.Close(); err != nil {
 			log.Println("close file error:", err)
 		}
 	}()

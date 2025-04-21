@@ -3,84 +3,39 @@
     <div class="crud-header">
       <el-row :gutter="20">
         <el-col :span="18">
-          <el-input
-            v-model="searchText"
-            placeholder="请输入搜索关键字"
-            clearable
-            @change="handleSearch"
-          />
+          <el-input v-model="searchText" placeholder="请输入搜索关键字" clearable @change="handleSearch" />
         </el-col>
         <el-col :span="6">
           <div class="flex-end">
-            <el-button type="primary" @click="openDialog('create')"
-              >新增模板</el-button
-            >
+            <el-button type="primary" @click="openDialog('create')">新增模板</el-button>
           </div>
         </el-col>
       </el-row>
     </div>
 
     <!-- 数据表格 -->
-    <el-table
-      :data="tableData"
-      stripe
-      border
-      table-layout="auto"
-      style="width: 100%"
-    >
-      <el-table-column
-        label="序号"
-        align="center"
-        prop="rowNum"
-      ></el-table-column>
-      <el-table-column
-        prop="name"
-        label="模板名称"
-        align="center"
-      ></el-table-column>
-      <el-table-column
-        prop="description"
-        label="模板描述"
-        align="center"
-      ></el-table-column>
-      <el-table-column
-        prop="createdAt"
-        label="创建时间"
-        align="center"
-      ></el-table-column>
+    <el-table :data="tableData" stripe border table-layout="auto" style="width: 100%">
+      <el-table-column label="序号" align="center" prop="rowNum"></el-table-column>
+      <el-table-column prop="name" label="模板名称" align="center"></el-table-column>
+      <el-table-column prop="description" label="模板描述" align="center"></el-table-column>
+      <el-table-column prop="createdAt" label="创建时间" align="center"></el-table-column>
       <el-table-column label="启用" align="center">
         <template #default="scope">
-          <el-switch
-            v-model="scope.row.inUse"
-            :active-value="1"
-            :inactive-value="0"
-            @change="switchChange(scope.row)"
-          />
+          <el-switch v-model="scope.row.disabled" :active-value="0" :inactive-value="1"
+            @change="switchChange(scope.row)" />
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center">
         <template #default="scope">
-          <el-button size="small" @click="openDialog('edit', scope.row)"
-            >编辑</el-button
-          >
-          <el-button size="small" type="danger" @click="handleDelete(scope.row)"
-            >删除</el-button
-          >
+          <el-button size="small" @click="openDialog('edit', scope.row)">编辑</el-button>
+          <el-button size="small" type="danger" @click="handleDelete(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
 
     <!-- 分页 -->
-    <el-pagination
-      class="pagination"
-      background
-      :hide-on-single-page="true"
-      :default-page-size="5"
-      :total="total"
-      :page-size="pageSize"
-      :current-page="currentPage"
-      @current-change="handlePageChange"
-    />
+    <el-pagination class="pagination" background :hide-on-single-page="true" :default-page-size="5" :total="total"
+      :page-size="pageSize" :current-page="currentPage" @current-change="handlePageChange" />
     <!-- 编辑对话框 -->
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="60%">
       <el-form :model="formData" :rules="formRules" ref="formRef">
@@ -88,22 +43,12 @@
           <el-input v-model="formData.name" placeholder="请输入模板名称" />
         </el-form-item>
         <el-form-item label="模板路径" prop="path">
-          <el-button
-            text
-            type="primary"
-            @click="openFileSelector"
-            :disabled="dialogType === 'edit'"
-          >
+          <el-button text type="primary" @click="openFileSelector" :disabled="dialogType === 'edit'">
             {{ formData.path || "选择模板文件" }}
           </el-button>
         </el-form-item>
         <el-form-item label="模板描述" prop="description">
-          <el-input
-            v-model="formData.description"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入模板描述"
-          />
+          <el-input v-model="formData.description" type="textarea" :rows="3" placeholder="请输入模板描述" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -140,7 +85,7 @@ const dialogTitle = computed(() => {
 });
 const dialogVisible = ref(false);
 const dialogType = ref("create");
-const formRef = ref("formRef");
+const formRef = ref(null);
 const formData = reactive({ ...defaultFormData });
 
 // 表单验证规则
@@ -167,7 +112,7 @@ async function switchChange(row) {
 }
 // 提交表单
 async function submitForm() {
-  const ok = await formRef.value.validate();
+  const ok = await formRef.value.validate().catch(err => false);
   if (!ok) return;
   let r;
   if (dialogType.value === "edit") {
@@ -215,7 +160,6 @@ async function getTemplateList() {
     currentPage.value,
     pageSize.value
   );
-  console.log(r);
   if (r.status) {
     tableData.value = r.data.list;
     total.value = r.data.total;
@@ -248,7 +192,7 @@ onMounted(() => {
   margin-top: 20px;
 }
 
-.el-button + .el-button {
+.el-button+.el-button {
   margin-left: 10px;
 }
 </style>

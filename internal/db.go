@@ -12,6 +12,7 @@ import (
 )
 
 const DBURL = "mongodb+srv://dote27:dduutton123@cluster0.uotcs1c.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+const PRDBURL = "mongodb://jldg:123456@10.50.21.152:27017/printease?authSource=admin&tls=false"
 
 var DBClient = InitDB()
 
@@ -44,7 +45,7 @@ func (m *Model) DefaultUpdatedAt() time.Time {
 }
 
 func InitDB() *mongox.Client {
-	options := options.Client().ApplyURI(DBURL)
+	options := options.Client().ApplyURI(PRDBURL)
 	client, err := mongo.Connect(options)
 	if err != nil {
 		panic(err)

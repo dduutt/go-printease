@@ -7,7 +7,7 @@ export namespace internal {
 	    name: string;
 	    path: string;
 	    description: string;
-	    inUse: number;
+	    disabled: number;
 	    fields: any[];
 	    datas: any[];
 	
@@ -23,7 +23,7 @@ export namespace internal {
 	        this.name = source["name"];
 	        this.path = source["path"];
 	        this.description = source["description"];
-	        this.inUse = source["inUse"];
+	        this.disabled = source["disabled"];
 	        this.fields = source["fields"];
 	        this.datas = source["datas"];
 	    }

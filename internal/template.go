@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 
 	"github.com/chenmingyong0423/go-mongox/v2"
 	"github.com/chenmingyong0423/go-mongox/v2/bsonx"
@@ -11,6 +12,7 @@ import (
 	"github.com/chenmingyong0423/go-mongox/v2/builder/update"
 	"github.com/xuri/excelize/v2"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 var tpColl = mongox.NewCollection[Template](DBClient.NewDatabase("printease"), "templates")
@@ -46,7 +48,7 @@ func (t *Template) ListByName(name string, skip, limit int) (*ListByNameResp, er
 	if err != nil {
 		return nil, err
 	}
-	tps, err := tpColl.Finder().Filter(query.Regex("name", name)).Sort(bsonx.M("created_at", -1)).Skip(int64(skip)).Limit(int64(limit)).Find(context.Background())
+	tps, err := tpColl.Finder().Filter(query.Regex("name", name)).Sort(bsonx.M("created_at", -1)).Skip(int64(skip)).Limit(int64(limit)).Find(context.Background(), options.Find().SetProjection(bsonx.M("datas", 0)))
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +60,7 @@ func (t *Template) ListUsedByName(name string) (*ListByNameResp, error) {
 	if err != nil {
 		return nil, err
 	}
-	tps, err := tpColl.Finder().Filter(query.Regex("name", name)).Sort(bsonx.M("created_at", -1)).Find(context.Background())
+	tps, err := tpColl.Finder().Filter(query.Regex("name", name)).Sort(bsonx.M("created_at", -1)).Find(context.Background(), options.Find().SetProjection(bsonx.M("datas", 0)))
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +89,7 @@ func (t *Template) Delete(id string) error {
 }
 
 func (t *Template) FindByName(name string) (*Template, error) {
-	return tpColl.Finder().Filter(query.Eq("name", name)).FindOne(context.Background())
+	return tpColl.Finder().Filter(query.Eq("name", name)).FindOne(context.Background(), options.FindOne().SetProjection(bsonx.M("datas", 0)))
 }
 
 func (t *Template) Count(name string) (int64, error) {
@@ -152,4 +154,73 @@ func (t *Template) readFromXlsx() error {
 		t.Datas = append(t.Datas, m)
 	}
 	return nil
+}
+
+func (t *Template) FindDatasByKeys(id string, keys []map[string]string) ([]map[string]string, error) {
+	// 转换字符串ID为MongoDB ObjectID
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, fmt.Errorf("无效的ID格式: %v", err)
+	}
+
+	// 构建动态过滤条件
+	conditions := make([]bson.M, 0, len(keys))
+	for _, m := range keys {
+		key := m["key"]
+		value := m["value"]
+		// 转义正则特殊字符
+		escapedValue := regexp.QuoteMeta(value)
+
+		// 构建正则匹配条件
+		conditions = append(conditions, bson.M{
+			"$regexMatch": bson.M{
+				"input":   fmt.Sprintf("$$this.%s", key),
+				"regex":   fmt.Sprintf(".*%s.*", escapedValue), // 添加通配符进行模糊匹配
+				"options": "i",                                 // 添加不区分大小写选项
+			},
+		})
+	}
+
+	// 如果没有有效条件则返回空
+	if len(conditions) == 0 {
+		return []map[string]string{}, nil
+	}
+
+	// 构建聚合管道
+	pipeline := []bson.M{
+		{"$match": bson.M{"_id": objID}},
+		{"$project": bson.M{
+			"filteredDatas": bson.M{
+				"$filter": bson.M{
+					"input": "$datas",
+					"as":    "this",
+					"cond":  bson.M{"$and": conditions},
+				},
+			},
+			"_id": 0,
+		}},
+	}
+
+	// 执行聚合查询
+	cursor, err := tpColl.Collection().Aggregate(context.Background(), pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("聚合查询失败: %v", err)
+	}
+	defer func() {
+		if err := cursor.Close(context.Background()); err != nil {
+			log.Printf("关闭游标失败: %v", err)
+		}
+	}()
+
+	// 解析查询结果
+	var result struct {
+		FilteredDatas []map[string]string `bson:"filteredDatas"`
+	}
+	if cursor.Next(context.Background()) {
+		if err := cursor.Decode(&result); err != nil {
+			return nil, fmt.Errorf("结果解析失败: %v", err)
+		}
+	}
+
+	return result.FilteredDatas, nil
 }

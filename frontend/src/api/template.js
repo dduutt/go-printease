@@ -4,6 +4,7 @@ import {
   ListByName,
   Update,
   Delete,
+  FindDatasByKeys,
 } from "../../wailsjs/go/internal/Template";
 
 export const templateAPI = {
@@ -11,6 +12,7 @@ export const templateAPI = {
   create,
   update,
   deleteById,
+  findDatasByKeys,
 };
 
 async function listByName(name = "", currentPage = 1, PageSize = 0) {
@@ -27,7 +29,23 @@ async function update(template) {
 }
 
 async function deleteById(id = "") {
-  console.log("deleteById", id);
   return await withMessage(Delete, id);
 }
 
+async function findDatasByKeys(id, keys) {
+  try {
+    const r = await FindDatasByKeys(id, [...keys]);
+    console.log(id, keys);
+    console.log(r);
+    return {
+      data: r,
+      status: true,
+    };
+  } catch (err) {
+    console.log(err);
+    return {
+      status: false,
+      data: [],
+    };
+  }
+}

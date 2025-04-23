@@ -30,6 +30,10 @@ export function FindByName(arg1) {
   return window['go']['internal']['Template']['FindByName'](arg1);
 }
 
+export function FindDatasByKeys(arg1, arg2) {
+  return window['go']['internal']['Template']['FindDatasByKeys'](arg1, arg2);
+}
+
 export function ListByName(arg1, arg2, arg3) {
   return window['go']['internal']['Template']['ListByName'](arg1, arg2, arg3);
 }

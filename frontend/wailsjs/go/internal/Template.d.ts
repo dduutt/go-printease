@@ -18,6 +18,8 @@ export function Delete(arg1:string):Promise<void>;
 
 export function FindByName(arg1:string):Promise<internal.Template>;
 
+export function FindDatasByKeys(arg1:string,arg2:Array<Record<string, string>>):Promise<Array<Record<string, string>>>;
+
 export function ListByName(arg1:string,arg2:number,arg3:number):Promise<internal.ListByNameResp>;
 
 export function ListUsedByName(arg1:string):Promise<internal.ListByNameResp>;

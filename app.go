@@ -27,7 +27,8 @@ func (a *App) startup(ctx context.Context) {
 
 func (a *App) FileSelector(title, displayName, ext string) (string, error) {
 	return runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
-		Title: title,
+		Title:            title,
+		DefaultDirectory: "./",
 		Filters: []runtime.FileFilter{
 			{
 				DisplayName: displayName,

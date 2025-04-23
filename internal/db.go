@@ -45,7 +45,7 @@ func (m *Model) DefaultUpdatedAt() time.Time {
 }
 
 func InitDB() *mongox.Client {
-	options := options.Client().ApplyURI(PRDBURL)
+	options := options.Client().ApplyURI(DBURL)
 	client, err := mongo.Connect(options)
 	if err != nil {
 		panic(err)

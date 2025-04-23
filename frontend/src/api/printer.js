@@ -32,6 +32,7 @@ async function print(formData) {
   });
 
   data["batchCode"] = batchCode;
+  data["date"] = new Date().toLocaleDateString();
 
   // 构建 Bartender REST API 请求数据
   const printRequestData = {
@@ -49,6 +50,7 @@ async function print(formData) {
       labelTemplatePath.substring(0, labelTemplatePath.lastIndexOf("\\"));
     printRequestData.PrintBTWAction.PrintToFileFileName =
       "PrintByPrintBTWAction.pdf";
+    printRequestData.PrintBTWAction.Printer = "PDF";
   }
 
   // 发送打印请求到 Bartender REST API

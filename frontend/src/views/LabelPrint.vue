@@ -1,27 +1,12 @@
 <template>
   <div class="common-layout">
-    <el-form
-      ref="ruleFormRef"
-      :rules="formRules"
-      :inline="true"
-      :model="formData"
-      label-position="top"
-      class="printForm"
-    >
+    <el-form ref="ruleFormRef" :rules="formRules" :inline="true" :model="formData" label-position="top"
+      class="printForm">
       <el-row>
         <el-col :span="8">
           <el-form-item label="打印模板" prop="printTemplate">
-            <el-select
-              v-model="formData.printTemplate"
-              value-key="id"
-              placeholder="请选择打印模板"
-            >
-              <el-option
-                v-for="item in printTemplates"
-                :key="item.id"
-                :label="item.name"
-                :value="item"
-              />
+            <el-select v-model="formData.printTemplate" value-key="id" placeholder="请选择打印模板">
+              <el-option v-for="item in printTemplates" :key="item.id" :label="item.name" :value="item" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -35,12 +20,7 @@
         <el-col :span="8">
           <el-form-item label="打印机" prop="printer">
             <el-select v-model="formData.printer" placeholder="请选择打印机">
-              <el-option
-                v-for="item in printers"
-                :key="item"
-                :label="item"
-                :value="item"
-              />
+              <el-option v-for="item in printers" :key="item" :label="item" :value="item" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -51,20 +31,13 @@
         </el-col>
         <el-col :span="6">
           <el-form-item label="位数" prop="runningNumberLength">
-            <el-input-number
-              v-model="formData.runningNumberLength"
-              :min="1"
-              :max="6"
-            />
+            <el-input-number v-model="formData.runningNumberLength" :min="1" :max="6" />
           </el-form-item>
         </el-col>
         <el-col :span="6">
           <el-form-item label="流水号" prop="runningNumber">
-            <el-input-number
-              v-model="formData.runningNumberCounter"
-              :min="1"
-              :max="Math.pow(10, formData.runningNumberLength) - 1"
-            />
+            <el-input-number v-model="formData.runningNumberCounter" :min="1"
+              :max="Math.pow(10, formData.runningNumberLength) - 1" />
           </el-form-item>
         </el-col>
         <el-col :span="6">
@@ -85,9 +58,7 @@
         <el-col :span="8">
           <el-form-item label=" " prop="actions" class="button-group">
             <div>
-              <el-button type="info" @click="resetLabelData(ruleFormRef)"
-                >重置</el-button
-              >
+              <el-button type="info" @click="resetLabelData(ruleFormRef)">重置</el-button>
               <el-button type="primary" @click="print">打印</el-button>
             </div>
           </el-form-item>
@@ -95,24 +66,12 @@
         <el-divider />
         <el-col :span="8" v-for="item in formData?.printTemplate?.fields">
           <el-form-item :label="item.name" :prop="item.key">
-            <el-select
-              v-model="item.value"
-              filterable
-              remote
-              allow-create
-              default-first-option
-              :filter-method="
-                (query) => {
-                  searchRemoteLabelData(item.key, query);
-                }
-              "
-            >
-              <el-option
-                v-for="option in options[item.key]"
-                :key="option"
-                :label="option"
-                :value="option"
-              />
+            <el-select v-model="item.value" filterable :loading="loading[item.key]" remote allow-create
+              default-first-option :filter-method="(query) => {
+                searchRemoteLabelData(item.key, query);
+              }
+                ">
+              <el-option v-for="option in options[item.key]" :key="option" :label="option" :value="option" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -143,6 +102,8 @@ const printers = ref([]);
 const printTemplates = reactive([]);
 
 const options = reactive({});
+const loading = ref({})
+
 
 // 表单验证规则
 const formRules = {

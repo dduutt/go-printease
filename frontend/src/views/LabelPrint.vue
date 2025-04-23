@@ -66,13 +66,9 @@
         <el-divider />
         <el-col :span="8" v-for="item in formData?.printTemplate?.fields">
           <el-form-item :label="item.name" :prop="item.key">
-            <el-select v-model="item.value" filterable :loading="loading[item.key]" remote allow-create
-              default-first-option :filter-method="(query) => {
-                searchRemoteLabelData(item.key, query);
-              }
-                ">
-              <el-option v-for="option in options[item.key]" :key="option" :label="option" :value="option" />
-            </el-select>
+            <el-autocomplete v-model="item.value" clearable
+              :fetch-suggestions="(...args) => { querySearchAsync(item.key, ...args) }" placeholder="请输入"
+              @select="handleSelect" />
           </el-form-item>
         </el-col>
       </el-row>
@@ -142,28 +138,39 @@ async function print() {
 // 过滤keys中key字段的重复项
 function filterUniqueValuesByKey(arr, key) {
   const v = arr.map((i) => i[key]);
-  return [...new Set(v)];
+  const fv = [...new Set(v)];
+  return fv.map((i) => ({ value: i }));
 }
 
-async function searchRemoteLabelData(key, query) {
-  const keys = [...formData.printTemplate.fields];
-  keys.forEach((v) => {
-    if (v.key == key) {
-      v.value = query;
-    }
-  });
-  const r = await templateAPI.findDatasByKeys(formData.printTemplate.id, keys);
+async function querySearchAsync(key, query, cb) {
+  const r = await querySearch();
   if (r.status) {
-    if (r.data.length == 1) {
-      formData.printTemplate.fields.forEach((item) => {
-        item.value = r.data[0][item.key];
-      });
-      return;
-    }
-    const v = filterUniqueValuesByKey(r.data, key);
-    options[key] = v;
+    const data = filterUniqueValuesByKey(r.data, key);
+    cb(data);
   }
+
 }
+
+async function querySearch() {
+  const keys = [...formData.printTemplate.fields];
+  const nKeys = keys.filter(k => k.value != "");
+  return await templateAPI.findDatasByKeys(formData.printTemplate.id, nKeys);
+}
+
+// 选择后自动填充
+async function handleSelect(item, key) {
+  const r = await querySearch();
+  if (r.status) {
+    const data = r.data
+    if (data.length === 1) {
+      formData.printTemplate.fields.forEach((i) => {
+        i.value = data[0][i.key];
+      });
+    }
+  }
+
+}
+
 
 async function resetLabelData() {
   formData.printTemplate.fields.forEach((i) => (i.value = ""));

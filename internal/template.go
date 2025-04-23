@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"regexp"
 
 	"github.com/chenmingyong0423/go-mongox/v2"
 	"github.com/chenmingyong0423/go-mongox/v2/bsonx"
@@ -165,26 +164,22 @@ func (t *Template) FindDatasByKeys(id string, keys []map[string]string) ([]map[s
 
 	// 构建动态过滤条件
 	conditions := make([]bson.M, 0, len(keys))
-	for _, m := range keys {
-		key := m["key"]
-		value := m["value"]
-		// 转义正则特殊字符
-		escapedValue := regexp.QuoteMeta(value)
-
-		// 构建正则匹配条件
+	for _, key := range keys {
+		if key["key"] == "" || key["value"] == "" {
+			continue
+		}
 		conditions = append(conditions, bson.M{
-			"$regexMatch": bson.M{
-				"input":   fmt.Sprintf("$$this.%s", key),
-				"regex":   fmt.Sprintf(".*%s.*", escapedValue), // 添加通配符进行模糊匹配
-				"options": "i",                                 // 添加不区分大小写选项
+			"$eq": []any{
+				fmt.Sprintf("$$this.%s", key["key"]),
+				key["value"],
 			},
 		})
 	}
 
 	// 如果没有有效条件则返回空
-	if len(conditions) == 0 {
-		return []map[string]string{}, nil
-	}
+	// if len(conditions) == 0 {
+	// 	return []map[string]string{}, nil
+	// }
 
 	// 构建聚合管道
 	pipeline := []bson.M{

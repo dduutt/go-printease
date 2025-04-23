@@ -41,13 +41,15 @@ async function print(formData) {
       SaveAfterPrint: false,
       NamedDataSources: data,
       Copies: copies,
-      // PrintToFileFolder: labelTemplatePath.substring(
-      //   0,
-      //   labelTemplatePath.lastIndexOf("\\")
-      // ),
-      // PrintToFileFileName: "PrintByPrintBTWAction.pdf",
     },
   };
+
+  if (printer.toUpperCase().includes("PDF")) {
+    printRequestData.PrintBTWAction.PrintToFileFolder =
+      labelTemplatePath.substring(0, labelTemplatePath.lastIndexOf("\\"));
+    printRequestData.PrintBTWAction.PrintToFileFileName =
+      "PrintByPrintBTWAction.pdf";
+  }
 
   // 发送打印请求到 Bartender REST API
 

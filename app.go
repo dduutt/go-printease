@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"os/exec"
+	"syscall"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -39,6 +40,11 @@ func (a *App) FileSelector(title, displayName, ext string) (string, error) {
 func (a *App) GetPinters() ([]string, error) {
 	// 执行powershell命令读取打印机名称列表，以json格式返回
 	cmd := exec.Command("powershell", "-Command", "Get-Printer | Select-Object -Property Name | ConvertTo-Json")
+
+	// 设置命令的创建标志以隐藏控制台窗口
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		HideWindow: true,
+	}
 	out, err := cmd.Output()
 	if err != nil {
 		return nil, err

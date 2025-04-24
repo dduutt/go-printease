@@ -35,8 +35,6 @@ async function deleteById(id = "") {
 async function findDatasByKeys(id, keys) {
   try {
     const r = await FindDatasByKeys(id, [...keys]);
-    console.log(id, keys);
-    console.log(r);
     return {
       data: r,
       status: true,

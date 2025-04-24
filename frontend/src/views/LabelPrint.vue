@@ -29,8 +29,8 @@
             <el-input v-model="formData.batch" />
           </el-form-item>
         </el-col>
-        <el-col :span="6">
-          <el-form-item label="位数" prop="runningNumberLength">
+        <el-col :span="6" v-show="false">
+          <el-form-item label="流水号位数" prop="runningNumberLength">
             <el-input-number v-model="formData.runningNumberLength" :min="1" :max="6" />
           </el-form-item>
         </el-col>
@@ -64,9 +64,9 @@
           </el-form-item>
         </el-col>
         <el-divider />
-        <el-col :span="8" v-for="item in formData?.printTemplate?.fields">
+        <el-col :span="8" v-for="item in formData?.printTemplate?.fields" v-show="showUI.includes(item.key)">
           <el-form-item :label="item.name" :prop="item.key">
-            <el-autocomplete v-model="item.value" clearable
+            <el-autocomplete v-model="item.value" clearable :disabled="!editUI.includes(item.key)"
               :fetch-suggestions="(...args) => { querySearchAsync(item.key, ...args) }" placeholder="请输入"
               @select="handleSelect" />
           </el-form-item>
@@ -90,17 +90,14 @@ const defaultFormData = {
   printTemplate: {},
   labelTemplatePath: "",
 };
+const showUI = ["产品名称", "型号规格", "额定电压", "颜色", "长度", "执行标准", "3C"]
+const editUI = ["产品名称", "型号规格", "额定电压", "颜色", "长度", "执行标准"]
 
 const formData = reactive({ ...defaultFormData });
 const ruleFormRef = ref(null);
 const printers = ref([]);
 // 打印模板列表
 const printTemplates = reactive([]);
-
-const options = reactive({});
-const loading = ref({})
-
-
 // 表单验证规则
 const formRules = {
   batchCode: [{ required: true, message: "批次号不能为空", trigger: "blur" }],
@@ -110,7 +107,7 @@ const formRules = {
   printTemplate: [
     { required: true, message: "请选择打印模板路径", trigger: "blur" },
   ],
-  batch: [{ required: true, message: "请选择打印模板路径", trigger: "blur" }],
+  batch: [{ required: true, message: "请输入批次信息", trigger: "blur" }],
 };
 
 const batchCode = computed({

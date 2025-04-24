@@ -1,7 +1,7 @@
 <template>
     <div class="header-content">
         <div class="logo">
-            <img src="../assets/vue.svg" alt="Logo" style="height: 36px">
+            <img src="../assets/printease.png" alt="Logo" style="height: 36px">
             <span>PrintEase</span>
         </div>
         <el-menu mode="horizontal" router :default-active="activeIndex" background-color="#fff" text-color="#606266"

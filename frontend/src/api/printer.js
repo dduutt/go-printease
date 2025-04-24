@@ -24,8 +24,8 @@ async function list() {
 }
 
 async function print(formData) {
-  const { batchCode, copies, printer, labelTemplatePath, num, printTemplate } =
-    formData;
+  const { batchCode, copies, printer, num, printTemplate } = formData;
+  let labelTemplatePath = formData.labelTemplatePath;
   const data = {};
   printTemplate?.fields?.forEach((item) => {
     data[item.key] = item.value;
@@ -34,6 +34,11 @@ async function print(formData) {
   data["batchCode"] = batchCode;
   data["date"] = new Date().toLocaleDateString();
 
+  // 判断是否打印3c标志版本
+  if (data["3C"] == "是") {
+    // 修改标签模板路径
+    labelTemplatePath = labelTemplatePath.replace(".btw", "_3c.btw");
+  }
   // 构建 Bartender REST API 请求数据
   const printRequestData = {
     PrintBTWAction: {

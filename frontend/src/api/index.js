@@ -10,7 +10,6 @@ export async function withMessage(f = async () => {}, ...args) {
   });
   try {
     const result = await f(...args);
-    console.log("withMessage result", result);
     ElMessage.success({
       message: "操作成功",
     });

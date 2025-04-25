@@ -1,91 +1,93 @@
 <template>
-  <div class="common-layout">
-    <el-form ref="ruleFormRef" :rules="formRules" :inline="true" :model="formData" label-position="top"
-      class="printForm">
-      <el-row>
-        <el-col :span="8">
-          <el-form-item label="打印模板" prop="printTemplate">
-            <el-select v-model="formData.printTemplate" value-key="id" placeholder="请选择打印模板">
-              <el-option v-for="item in printTemplates" :key="item.id" :label="item.name" :value="item" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="标签模板" prop="labelTemplatePath">
-            <el-button text type="primary" @click="openFileSelector">
-              {{ formData.labelTemplatePath || "选择模板文件" }}
-            </el-button>
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label="打印机" prop="printer">
-            <el-select v-model="formData.printer" placeholder="请选择打印机">
-              <el-option v-for="item in printers" :key="item" :label="item" :value="item" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="6">
-          <el-form-item label="批次信息" prop="batch">
-            <el-input v-model="formData.batch" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="6" v-show="showUI.includes('流水号位数')">
-          <el-form-item label="流水号位数" prop="runningNumberLength">
-            <el-input-number v-model="formData.runningNumberLength" :min="1" :max="6"
-              :disabled="editUI.includes('流水号位数')" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="6">
-          <el-form-item label="流水号" prop="runningNumber">
-            <el-input-number v-model="formData.runningNumberCounter" :min="1"
-              :max="Math.pow(10, formData.runningNumberLength) - 1" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="6">
-          <el-form-item label="批次号" prop="batchCode">
-            <el-input v-model="batchCode" disabled />
-          </el-form-item>
-        </el-col>
-        <el-col :span="6">
-          <el-form-item label="副本" prop="copies">
-            <el-input-number v-model="formData.copies" :min="1" :max="100" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="6">
-          <el-form-item label="数量" prop="num">
-            <el-input-number v-model="formData.num" :min="1" :max="100" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="6">
-          <el-form-item label="日期" prop="num">
-            <el-date-picker v-model="formData.date" type="date" format="YYYY-MM-DD" value-format="x" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="8">
-          <el-form-item label=" " prop="actions" class="button-group">
-            <div>
-              <el-button type="info" @click="resetLabelData(ruleFormRef)">重置</el-button>
-              <el-button type="primary" @click="print">打印</el-button>
-            </div>
-          </el-form-item>
-        </el-col>
-        <el-divider />
-        <el-col :span="8" v-for="item in formData?.printTemplate?.fields" v-show="showUI.includes(item.key)">
-          <el-form-item :label="item.name" :prop="item.key">
-            <el-autocomplete v-model="item.value" clearable :disabled="!editUI.includes(item.key)"
-              :fetch-suggestions="(...args) => { querySearchAsync(item.key, ...args) }" placeholder="请输入"
-              @select="handleSelect" />
-          </el-form-item>
-        </el-col>
-      </el-row>
-    </el-form>
-  </div>
+  <el-form ref="ruleFormRef" :rules="formRules" :inline="true" :model="formData" label-position="top" class="printForm">
+    <el-row class="form-row" justify="space-between">
+      <el-col :span="6">
+        <el-form-item label="打印模板" prop="printTemplate">
+          <el-select v-model="formData.printTemplate" value-key="id" placeholder="请选择打印模板">
+            <el-option v-for="item in printTemplates" :key="item.id" :label="item.name" :value="item" />
+          </el-select>
+        </el-form-item>
+      </el-col>
+      <el-col :span="6">
+        <el-form-item label="标签模板" prop="labelTemplatePath">
+          <el-button text type="primary" @click="openFileSelector">
+            {{ formData.labelTemplatePath || "选择模板文件" }}
+          </el-button>
+        </el-form-item>
+      </el-col>
+      <el-col :span="6">
+        <el-form-item label="打印机" prop="printer">
+          <el-select v-model="formData.printer" placeholder="请选择打印机">
+            <el-option v-for="item in printers" :key="item" :label="item" :value="item" />
+          </el-select>
+        </el-form-item>
+      </el-col>
+    </el-row>
+    <el-row class="form-row" justify="space-between">
+      <el-col :span="6">
+        <el-form-item label="批次信息" prop="batch">
+          <el-input v-model="formData.batch" />
+        </el-form-item>
+      </el-col>
+      <el-col :span="6" v-show="showUI.includes('流水号位数')">
+        <el-form-item label="流水号位数" prop="runningNumberLength">
+          <el-input-number v-model="formData.runningNumberLength" :min="1" :max="6"
+            :disabled="editUI.includes('流水号位数')" />
+        </el-form-item>
+      </el-col>
+      <el-col :span="6">
+        <el-form-item label="流水号" prop="runningNumber">
+          <el-input-number v-model="formData.runningNumberCounter" :min="1"
+            :max="Math.pow(10, formData.runningNumberLength) - 1" />
+        </el-form-item>
+      </el-col>
+      <el-col :span="6">
+        <el-form-item label="批次号" prop="batchCode">
+          <el-input v-model="batchCode" disabled />
+        </el-form-item>
+      </el-col>
+    </el-row>
+    <el-row class="form-row" justify="space-between">
+      <el-col :span="6">
+        <el-form-item label="副本" prop="copies">
+          <el-input-number v-model="formData.copies" :min="1" :max="100" />
+        </el-form-item>
+      </el-col>
+      <el-col :span="6">
+        <el-form-item label="数量" prop="num">
+          <el-input-number v-model="formData.num" :min="1" :max="100" />
+        </el-form-item>
+      </el-col>
+      <el-col :span="6">
+        <el-form-item label="日期" prop="num">
+          <el-date-picker v-model="formData.date" type="date" format="YYYY/M/D" value-format="YYYY/M/D" />
+        </el-form-item>
+      </el-col>
+      <el-col :span="6">
+        <el-form-item label=" " prop="actions" class="button-group">
+          <div>
+            <el-button type="info" @click="resetLabelData(ruleFormRef)">重置</el-button>
+            <el-button type="primary" @click="print">打印</el-button>
+          </div>
+        </el-form-item>
+      </el-col>
+      <el-divider />
+      <el-col :span="8" v-for="item in formData?.printTemplate?.fields" v-show="showUI.includes(item.key)">
+        <el-form-item :label="item.name" :prop="item.key">
+          <el-autocomplete v-model="item.value" clearable :disabled="!editUI.includes(item.key)"
+            :fetch-suggestions="(...args) => { querySearchAsync(item.key, ...args) }" placeholder="请输入"
+            @select="handleSelect" />
+        </el-form-item>
+      </el-col>
+    </el-row>
+  </el-form>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed } from "vue";
 import { templateAPI, fileAPI, printerAPI, printRecordAPI, invoke, invokeWithLoading, invokeWithMessage } from "../api";
 
+const today = new Date();
 const defaultFormData = {
   printer: "",
   copies: 1,
@@ -95,8 +97,9 @@ const defaultFormData = {
   batch: "",
   printTemplate: {},
   labelTemplatePath: "",
-  date: new Date(),
+  date: today.toLocaleDateString(),
 };
+
 const showUI = ["产品名称", "型号", "规格", "型号规格", "额定电压", "颜色", "长度", "执行标准", "3C", "日期", "物料代码"]
 const editUI = ["产品名称", "型号", "规格", "型号规格", "额定电压", "颜色", "长度", "执行标准", "日期"]
 
@@ -228,14 +231,8 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.common-layout {
-  height: 100%;
-  display: flex;
+.form-row {
   width: 100%;
-}
-
-.printForm .el-form-item {
-  width: 90%;
 }
 
 .button-group {

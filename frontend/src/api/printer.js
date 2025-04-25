@@ -22,7 +22,6 @@ async function print(formData) {
 
   data["batchCode"] = batchCode;
   data["date"] = date;
-
   // 判断是否打印3c标志版本
   if (data["3C"] == "是") {
     // 修改标签模板路径

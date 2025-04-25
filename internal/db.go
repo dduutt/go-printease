@@ -11,8 +11,8 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
 
-const DBURL = "mongodb+srv://dote27:<pwd>@cluster0.uotcs1c.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-const PRDBURL = "mongodb://jldg:<pwd>@10.50.21.152:27017/printease?authSource=admin&tls=false"
+const DBURL = ""
+const PRDBURL = ""
 
 var DBClient = InitDB()
 

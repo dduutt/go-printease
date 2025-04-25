@@ -2,7 +2,7 @@
     <div class="header-content">
         <div class="logo">
             <img src="../assets/printease.png" alt="Logo" style="height: 36px">
-            <span>PrintEase</span>
+            <span>打印易</span>
         </div>
         <el-menu mode="horizontal" router :default-active="activeIndex" background-color="#fff" text-color="#606266"
             active-text-color="#409EFF" class="nav-menu">

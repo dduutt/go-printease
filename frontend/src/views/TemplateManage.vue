@@ -161,6 +161,12 @@ async function getTemplateList() {
     pageSize.value
   );
   if (r.status) {
+    // 处理日期格式
+    // 生成序号
+    r.data.list.forEach((item, index) => {
+      item.rowNum = (currentPage.value - 1) * pageSize.value + index + 1;
+      item.createdAt = new Date(item.createdAt).toLocaleString();
+    });
     tableData.value = r.data.list;
     total.value = r.data.total;
   }

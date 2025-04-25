@@ -33,14 +33,14 @@ func (m *Model) DefaultId() bson.ObjectID {
 // wails:ignore
 func (m *Model) DefaultCreatedAt() time.Time {
 	if m.CreatedAt.IsZero() {
-		m.CreatedAt = time.Now().Local()
+		m.CreatedAt = time.Now()
 	}
 	return m.CreatedAt
 }
 
 // wails:ignore
 func (m *Model) DefaultUpdatedAt() time.Time {
-	m.UpdatedAt = time.Now().Local()
+	m.UpdatedAt = time.Now()
 	return m.UpdatedAt
 }
 

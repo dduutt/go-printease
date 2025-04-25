@@ -17,7 +17,6 @@ var assets embed.FS
 func main() {
 	// Create an instance of the app structure
 	app := NewApp()
-	template := &internal.Template{}
 
 	defer func() {
 		err := internal.Close()
@@ -37,7 +36,8 @@ func main() {
 		OnStartup: app.startup,
 		Bind: []any{
 			app,
-			template,
+			&internal.PrintRecord{},
+			&internal.Template{},
 		},
 	})
 

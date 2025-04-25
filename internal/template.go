@@ -22,7 +22,7 @@ type Template struct {
 	Path        string              `bson:"path" json:"path"`
 	Description string              `bson:"description" json:"description"`
 	Disabled    int                 `bson:"disabled" json:"disabled"`
-	Filds       []map[string]string `bson:"fields" json:"fields"`
+	Fields      []map[string]string `bson:"fields" json:"fields"`
 	Datas       []map[string]string `bson:"datas" json:"datas"`
 }
 
@@ -32,8 +32,12 @@ type ListByNameResp struct {
 }
 
 func (t *Template) Create(ti *Template) error {
+	_, err := t.FindByName(ti.Name)
+	if err == nil {
+		return fmt.Errorf("template name already exists")
+	}
 	ti.CreatedAt = t.DefaultCreatedAt()
-	err := ti.readFromXlsx()
+	err = ti.readFromXlsx()
 	if err != nil {
 		return fmt.Errorf("read from xlsx error:%s", err)
 	}
@@ -133,7 +137,7 @@ func (t *Template) readFromXlsx() error {
 			m["name"] = value
 			m["key"] = value
 			m["value"] = ""
-			t.Filds = append(t.Filds, m)
+			t.Fields = append(t.Fields, m)
 		}
 	}
 	rowIdx := 1

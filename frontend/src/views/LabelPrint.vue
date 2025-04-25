@@ -29,9 +29,10 @@
             <el-input v-model="formData.batch" />
           </el-form-item>
         </el-col>
-        <el-col :span="6" v-show="false">
+        <el-col :span="6" v-show="showUI.includes('流水号位数')">
           <el-form-item label="流水号位数" prop="runningNumberLength">
-            <el-input-number v-model="formData.runningNumberLength" :min="1" :max="6" />
+            <el-input-number v-model="formData.runningNumberLength" :min="1" :max="6"
+              :disabled="editUI.includes('流水号位数')" />
           </el-form-item>
         </el-col>
         <el-col :span="6">
@@ -45,14 +46,19 @@
             <el-input v-model="batchCode" disabled />
           </el-form-item>
         </el-col>
-        <el-col :span="8">
+        <el-col :span="6">
           <el-form-item label="副本" prop="copies">
             <el-input-number v-model="formData.copies" :min="1" :max="100" />
           </el-form-item>
         </el-col>
-        <el-col :span="8">
+        <el-col :span="6">
           <el-form-item label="数量" prop="num">
             <el-input-number v-model="formData.num" :min="1" :max="100" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="6">
+          <el-form-item label="日期" prop="num">
+            <el-date-picker v-model="formData.date" type="date" format="YYYY-MM-DD" value-format="x" />
           </el-form-item>
         </el-col>
         <el-col :span="8">
@@ -78,7 +84,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed } from "vue";
-import { templateAPI, fileAPI, printerAPI } from "../api";
+import { templateAPI, fileAPI, printerAPI, printRecordAPI, invoke, invokeWithLoading, invokeWithMessage } from "../api";
 
 const defaultFormData = {
   printer: "",
@@ -89,9 +95,10 @@ const defaultFormData = {
   batch: "",
   printTemplate: {},
   labelTemplatePath: "",
+  date: new Date(),
 };
-const showUI = ["产品名称", "型号规格", "额定电压", "颜色", "长度", "执行标准", "3C"]
-const editUI = ["产品名称", "型号规格", "额定电压", "颜色", "长度", "执行标准"]
+const showUI = ["产品名称", "型号", "规格", "型号规格", "额定电压", "颜色", "长度", "执行标准", "3C", "日期", "物料代码"]
+const editUI = ["产品名称", "型号", "规格", "型号规格", "额定电压", "颜色", "长度", "执行标准", "日期"]
 
 const formData = reactive({ ...defaultFormData });
 const ruleFormRef = ref(null);
@@ -127,7 +134,27 @@ async function print() {
   if (!ok) {
     return;
   }
-  const r = await printerAPI.print(formData);
+  // 验证批号是否存在
+  const printRecords = await printRecordAPI.findByBatchCode(
+    formData.batchCode
+  );
+
+  if (printRecords.status) {
+    if (printRecords.data.length > 0) {
+      const c = confirm("该批号已打印过，是否继续打印？")
+      if (!c) {
+        return;
+      }
+    }
+  }
+  const createResp = await printRecordAPI.create(formData)
+  if (!createResp.status) {
+    if (!confirm("记录打印批号失败,是否继续打印?")) {
+      return
+    }
+  }
+
+  const r = await invokeWithLoading(printerAPI.print, formData);
   if (r.status) {
     formData.runningNumberCounter++;
   }
@@ -170,7 +197,7 @@ async function handleSelect(item, key) {
 
 
 async function resetLabelData() {
-  formData.printTemplate.fields.forEach((i) => (i.value = ""));
+  formData.printTemplate?.fields?.forEach((i) => (i.value = ""));
 }
 
 async function getTemplates() {

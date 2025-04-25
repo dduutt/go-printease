@@ -1,4 +1,4 @@
-import { withMessage } from ".";
+import { invokeWithLoading, invoke } from ".";
 import {
   Create,
   ListByName,
@@ -17,33 +17,21 @@ export const templateAPI = {
 
 async function listByName(name = "", currentPage = 1, PageSize = 0) {
   const offset = (currentPage - 1) * PageSize;
-  return await withMessage(ListByName, name, offset, PageSize);
+  return await invokeWithLoading(ListByName, name, offset, PageSize);
 }
 
 async function create(template) {
-  return await withMessage(Create, template);
+  return await invokeWithLoading(Create, template);
 }
 
 async function update(template) {
-  return await withMessage(Update, template);
+  return await invokeWithLoading(Update, template);
 }
 
 async function deleteById(id = "") {
-  return await withMessage(Delete, id);
+  return await invokeWithLoading(Delete, id);
 }
 
 async function findDatasByKeys(id, keys) {
-  try {
-    const r = await FindDatasByKeys(id, [...keys]);
-    return {
-      data: r,
-      status: true,
-    };
-  } catch (err) {
-    console.log(err);
-    return {
-      status: false,
-      data: [],
-    };
-  }
+  return await invoke(FindDatasByKeys, id, [...keys]);
 }

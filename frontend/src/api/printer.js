@@ -1,4 +1,4 @@
-import { withMessage } from ".";
+import { invoke, invokeWithLoading, invokeWithMessage } from ".";
 import { GetPinters } from "../../wailsjs/go/main/App";
 export const printerAPI = {
   list,
@@ -9,22 +9,11 @@ const url =
   "http://localhost:5159/api/actions?Wait=30s&MessageCount=200&MessageSeverity=Info";
 
 async function list() {
-  try {
-    const r = await GetPinters();
-    return {
-      data: r,
-      status: true,
-    };
-  } catch (e) {
-    return {
-      data: [],
-      status: false,
-    };
-  }
+  return await invoke(GetPinters);
 }
 
 async function print(formData) {
-  const { batchCode, copies, printer, num, printTemplate } = formData;
+  const { batchCode, copies, printer, num, printTemplate, date } = formData;
   let labelTemplatePath = formData.labelTemplatePath;
   const data = {};
   printTemplate?.fields?.forEach((item) => {
@@ -32,7 +21,7 @@ async function print(formData) {
   });
 
   data["batchCode"] = batchCode;
-  data["date"] = new Date().toLocaleDateString();
+  data["date"] = date;
 
   // 判断是否打印3c标志版本
   if (data["3C"] == "是") {
@@ -59,10 +48,13 @@ async function print(formData) {
   }
 
   // 发送打印请求到 Bartender REST API
-
-  return await withMessage(fetch, url, {
+  const printResp = await fetch(url, {
     method: "POST",
     body: JSON.stringify(printRequestData),
     credentials: "include",
-  });
+  }).then((response) => response.json());
+  if (printResp.Status == "Faulted") {
+    throw new Error("打印失败");
+  }
+  return printResp;
 }

@@ -55,7 +55,8 @@
       </el-col>
       <el-col :span="6">
         <el-form-item label="数量" prop="num">
-          <el-input-number v-model="formData.num" :min="1" :max="100" />
+          <el-input-number v-model="formData.num" :min="1"
+            :max="Math.pow(10, formData.runningNumberLength) - formData.runningNumberCounter" />
         </el-form-item>
       </el-col>
       <el-col :span="6">
@@ -125,41 +126,54 @@ const batchCode = computed({
     const b =
       formData.batch +
       formData.runningNumberCounter
-        .toString()
+        ?.toString()
         .slice(-formData.runningNumberLength)
         .padStart(formData.runningNumberLength, "0");
     formData.batchCode = b;
     return b;
   },
 });
+
 async function print() {
   const ok = await ruleFormRef.value.validate().catch((err) => false);
   if (!ok) {
     return;
   }
-  // 验证批号是否存在
-  const printRecords = await printRecordAPI.findByBatchCode(
-    formData.batchCode
+  if (Math.pow(10, formData.runningNumberLength) < formData.runningNumberCounter + formData.num) {
+    const c = confirm("流水号已超出范围,无法继续打印")
+    return
+  }
+  const codes = printRecordAPI.genBatchCodes(
+    formData.batch,
+    formData.runningNumberLength,
+    formData.runningNumberCounter,
+    formData.num
   );
-
+  // 验证批号是否存在
+  const printRecords = await printRecordAPI.findByBatchCodes(
+    codes
+  );
   if (printRecords.status) {
     if (printRecords.data.length > 0) {
-      const c = confirm("该批号已打印过，是否继续打印？")
+      const set = new Set(printRecords.data.map((i) => {
+        return `${i.batch_code}`;
+      }))
+      const c = confirm("已打印以下批号,是否继续打印?\n" + [...set].join(","))
       if (!c) {
         return;
       }
     }
   }
-  const createResp = await printRecordAPI.create(formData)
+  const createResp = await printRecordAPI.createMany(formData, codes)
   if (!createResp.status) {
-    if (!confirm("记录打印批号失败,是否继续打印?")) {
+    if (!confirm("记录打印批号失败")) {
       return
     }
   }
 
-  const r = await invokeWithLoading(printerAPI.print, formData);
+  const r = await invokeWithLoading(printerAPI.printMany, formData, codes);
   if (r.status) {
-    formData.runningNumberCounter++;
+    formData.runningNumberCounter = formData.runningNumberCounter + formData.num;
   }
 }
 // 过滤keys中key字段的重复项

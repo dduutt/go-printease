@@ -2,17 +2,17 @@ package internal
 
 import (
 	"context"
+	"log"
+	"os"
 	"time"
 
 	"github.com/chenmingyong0423/go-mongox/v2"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
-
-const DBURL = "mongodb+srv://dote27:dduutton123@cluster0.uotcs1c.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-const PRDBURL = "mongodb://jldg:123456@10.50.21.152:27017/printease?authSource=admin&tls=false"
 
 var DBClient = InitDB()
 
@@ -45,16 +45,28 @@ func (m *Model) DefaultUpdatedAt() time.Time {
 }
 
 func InitDB() *mongox.Client {
-	options := options.Client().ApplyURI(PRDBURL)
+	// 加载.env文件中的环境变量
+	err := godotenv.Load()
+	if err != nil {
+		log.Printf("警告: 无法加载.env文件: %v\n", err)
+	}
+
+	// 从环境变量获取数据库连接URL
+	uri := os.Getenv("DB_URL")
+	log.Printf("正在连接到数据库: %s\n", uri)
+	options := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(options)
 	if err != nil {
+		log.Printf("连接MongoDB失败: %v\n", err)
 		panic(err)
 	}
 
 	err = client.Ping(context.TODO(), readpref.Primary())
 	if err != nil {
+		log.Printf("MongoDB ping失败: %v\n", err)
 		panic(err)
 	}
+	log.Println("成功连接到MongoDB")
 	return mongox.NewClient(client, &mongox.Config{})
 }
 

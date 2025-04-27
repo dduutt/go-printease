@@ -6,6 +6,10 @@ export function Create(arg1) {
   return window['go']['internal']['PrintRecord']['Create'](arg1);
 }
 
+export function CreateMany(arg1) {
+  return window['go']['internal']['PrintRecord']['CreateMany'](arg1);
+}
+
 export function DefaultCreatedAt() {
   return window['go']['internal']['PrintRecord']['DefaultCreatedAt']();
 }
@@ -20,4 +24,8 @@ export function DefaultUpdatedAt() {
 
 export function FindByBatchCode(arg1) {
   return window['go']['internal']['PrintRecord']['FindByBatchCode'](arg1);
+}
+
+export function FindByBatchCodes(arg1) {
+  return window['go']['internal']['PrintRecord']['FindByBatchCodes'](arg1);
 }

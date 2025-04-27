@@ -28,3 +28,18 @@ func (p *PrintRecord) FindByBatchCode(batchCode string) ([]*PrintRecord, error) 
 
 	return prColl.Finder().Filter(f).Find(context.Background())
 }
+
+func (p *PrintRecord) FindByBatchCodes(batchCodes []string) ([]*PrintRecord, error) {
+
+	f := query.In("batch_code", batchCodes...)
+	return prColl.Finder().Filter(f).Find(context.Background())
+
+}
+
+func (p *PrintRecord) CreateMany(pi []*PrintRecord) error {
+	for _, v := range pi {
+		v.CreatedAt = v.DefaultCreatedAt()
+	}
+	_, err := prColl.Creator().InsertMany(context.Background(), pi)
+	return err
+}

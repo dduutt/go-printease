@@ -6,6 +6,8 @@ import {bson} from '../models';
 
 export function Create(arg1:internal.PrintRecord):Promise<void>;
 
+export function CreateMany(arg1:Array<internal.PrintRecord>):Promise<void>;
+
 export function DefaultCreatedAt():Promise<time.Time>;
 
 export function DefaultId():Promise<bson.ObjectID>;
@@ -13,3 +15,5 @@ export function DefaultId():Promise<bson.ObjectID>;
 export function DefaultUpdatedAt():Promise<time.Time>;
 
 export function FindByBatchCode(arg1:string):Promise<Array<internal.PrintRecord>>;
+
+export function FindByBatchCodes(arg1:Array<string>):Promise<Array<internal.PrintRecord>>;

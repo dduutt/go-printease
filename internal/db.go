@@ -18,7 +18,7 @@ var DB_URI string
 var DBClient = InitDB()
 
 type Model struct {
-	ID        bson.ObjectID `bson:"_id,omitempty" mongox:"autoID" json:"id" ts_type:"string"`
+	ID        bson.ObjectID `bson:"_id,omitempty" mongox:"autoID" json:"id"`
 	CreatedAt time.Time     `bson:"created_at" json:"createdAt"`
 	UpdatedAt time.Time     `bson:"updated_at" json:"updatedAt"`
 }

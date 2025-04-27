@@ -52,7 +52,7 @@ func InitDB() *mongox.Client {
 	}
 
 	// 从环境变量获取数据库连接URL
-	uri := os.Getenv("DB_URL")
+	uri := os.Getenv("DB_URI")
 	log.Printf("正在连接到数据库: %s\n", uri)
 	options := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(options)

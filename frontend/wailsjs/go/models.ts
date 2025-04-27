@@ -1,7 +1,7 @@
 export namespace internal {
 	
 	export class Template {
-	    id: number[];
+	    id: string;
 	    createdAt: time.Time;
 	    updatedAt: time.Time;
 	    name: string;
@@ -79,7 +79,7 @@ export namespace internal {
 		}
 	}
 	export class PrintRecord {
-	    id: number[];
+	    id: string;
 	    createdAt: time.Time;
 	    updatedAt: time.Time;
 	    template_name: string;

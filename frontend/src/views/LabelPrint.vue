@@ -41,6 +41,11 @@
             :max="Math.pow(10, formData.runningNumberLength) - 1" />
         </el-form-item>
       </el-col>
+      <el-col :span="4">
+        <el-form-item label="自动增加" prop="runningNumber">
+          <el-switch v-model="autoIncrement" />
+        </el-form-item>
+      </el-col>
       <el-col :span="6">
         <el-form-item label="批次号" prop="batchCode">
           <el-input v-model="batchCode" disabled />
@@ -104,6 +109,8 @@ const defaultFormData = {
 const showUI = ["产品名称", "型号", "规格", "型号规格", "额定电压", "颜色", "长度", "执行标准", "3C", "日期", "物料代码"]
 const editUI = ["产品名称", "型号", "规格", "型号规格", "额定电压", "颜色", "长度", "执行标准", "日期"]
 
+// 自增流水号
+const autoIncrement = ref(true);
 const formData = reactive({ ...defaultFormData });
 const ruleFormRef = ref(null);
 const printers = ref([]);
@@ -134,22 +141,8 @@ const batchCode = computed({
   },
 });
 
-async function print() {
-  const ok = await ruleFormRef.value.validate().catch((err) => false);
-  if (!ok) {
-    return;
-  }
-  if (Math.pow(10, formData.runningNumberLength) < formData.runningNumberCounter + formData.num) {
-    const c = confirm("流水号已超出范围,无法继续打印")
-    return
-  }
-  const codes = printRecordAPI.genBatchCodes(
-    formData.batch,
-    formData.runningNumberLength,
-    formData.runningNumberCounter,
-    formData.num
-  );
-  // 验证批号是否存在
+// 验证批号是否存在,如果存在,则提示是否继续打印
+async function validateBatchCode(codes) {
   const printRecords = await printRecordAPI.findByBatchCodes(
     codes
   );
@@ -158,12 +151,35 @@ async function print() {
       const set = new Set(printRecords.data.map((i) => {
         return `${i.batch_code}`;
       }))
-      const c = confirm("已打印以下批号,是否继续打印?\n" + [...set].join(","))
-      if (!c) {
-        return;
-      }
+      return confirm("已打印以下批号,是否继续打印?\n" + [...set].join(","))
     }
   }
+  return true;
+}
+
+async function print() {
+  const ok = await ruleFormRef.value.validate().catch((err) => false);
+  if (!ok) {
+    return;
+  }
+  if (Math.pow(10, formData.runningNumberLength) < formData.runningNumberCounter + formData.num) {
+    alert("流水号已超出范围,无法继续打印")
+    return
+  }
+  const codes = printRecordAPI.genBatchCodes(
+    formData.batch,
+    formData.runningNumberLength,
+    formData.runningNumberCounter,
+    formData.num
+  );
+  // 如果流水号自增，则验证批号是否存在
+  if (autoIncrement.value) {
+    const p = await validateBatchCode(codes);
+    if (!p) {
+      return;
+    }
+  }
+
   const createResp = await printRecordAPI.createMany(formData, codes)
   if (!createResp.status) {
     if (!confirm("记录打印批号失败")) {
@@ -172,7 +188,7 @@ async function print() {
   }
 
   const r = await invokeWithLoading(printerAPI.printMany, formData, codes);
-  if (r.status) {
+  if (r.status && autoIncrement.value) {
     formData.runningNumberCounter = formData.runningNumberCounter + formData.num;
   }
 }

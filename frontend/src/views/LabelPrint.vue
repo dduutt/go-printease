@@ -78,9 +78,9 @@
         </el-form-item>
       </el-col>
       <el-divider />
-      <el-col :span="8" v-for="item in formData?.printTemplate?.fields" v-show="showUI.includes(item.key)">
+      <el-col :span="8" v-for="item in formData?.printTemplate?.fields">
         <el-form-item :label="item.name" :prop="item.key">
-          <el-autocomplete v-model="item.value" clearable :disabled="!editUI.includes(item.key)"
+          <el-autocomplete v-model="item.value" clearable
             :fetch-suggestions="(...args) => { querySearchAsync(item.key, ...args) }" placeholder="请输入"
             @select="handleSelect" />
         </el-form-item>

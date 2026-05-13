@@ -1,7 +1,37 @@
-build/bin
-node_modules
-frontend/dist
-# Local
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+build/bin/
+obj/
+
+# Test & Coverage
+*.test
+*.out
+coverage.out
+
+# Go
+go.work
+vendor/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project Specific
+logs/
+*.log
+*.db
 .env
-# 不提交pdf文件
-*.pdf
+.worktrees/
+frontend/dist/
+frontend/node_modules/
